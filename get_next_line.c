@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: abchaban <abchaban@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/11/18 15:11:31 by abchaban          #+#    #+#             */
-/*   Updated: 2022/11/20 13:26:27 by abchaban         ###   ########.fr       */
+/*   Created: 2022/11/22 16:20:06 by abchaban          #+#    #+#             */
+/*   Updated: 2022/11/22 19:02:01 by abchaban         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,104 +14,95 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int	get_len_before_new_line(char *buf)
+int ft_strlen(char *str)
 {
-	int	i;
+    int i;
 
-	i = 0;
-	while (buf[i])
-	{
-		if (buf[i] == '\n' || buf[i] == 0)
-			break ;
-		i++;
-	}
-	return (i);
+    i = 0;
+    if (str == 0)
+        return (0);
+    while (str[i])
+        i++;
+    return (i);
 }
 
-int	get_len(char *str)
+// return length of buff before a \n + 1 to include \n
+int count_before_new_line(char *buf)
 {
-	int	i;
+    int i;
 
-	i = 0;
-	if (str == 0)
-		return (0);
-	while (str[i])
-	{
-		if (str[i] == 0)
-			break ;
-		i++;
-	}
-	return (i);
+    i = 0;
+    while (buf[i] && buf[i] != '\n')
+        i++;
+    if (buf[i] == '\n')
+        i++;
+    return (i);
 }
 
-// fill str with buf as long as the line or the file isn t finish
-void	fill_str(char *buf, char *str, char *end_buf, int *i_end_last_buf)
+void    fill_str(char *str, char *buf, char *end_buf)
 {
-	int	i;
-	int	j;
+    int i;
+    int j;
 
-	j = 0;
-	i = 0;
-
-	while (end_buf != 0 && end_buf[i])
-	{
-		str[i] = end_buf[i];
-		i++;
-	}
-	while (buf[j] && buf != 0 )
-	{
-		if (buf[j] == '\n' || buf[j] == 0)
-			break ;
-		str[i] = buf[j];
-		i++;
-		j++;
-	}
-	str[i] = 0;
+    i = 0;
+    j = 0;
+    
+    while (end_buf != 0 && end_buf[i])
+    {
+        str[i] = end_buf[i];
+        i++;
+    }
+    while (buf[j] && buf[j] != '\n')
+    {
+        str[i] = buf[j];
+        i++;
+        j++;
+    }
+    if (buf[j] == '\n')
+        str[i++] = '\n';
+    str[i] = 0;
 }
-
-int	len_end_buf(char *buf, int len)
+void    fill_end_buff(char *end_buf, char *buf, int len_buf)
 {
-	int	i;
+    int i;
 
-	i = 0;
-	while (buf[len + i])
-		i++;
-	return (i);
+    i = 0;
+    while (buf[len_buf])
+    {
+        end_buf[i] = buf[len_buf];
+        len_buf++;
+        i++;
+    }
+    end_buf[i] = 0;
 }
-
-
-// if we found new line before end of str, save the end of buff on end_buf
-void	save_end_buf(int len, char *end_buf, char *buf)
-{
-	int	i;
-
-	i = 0;
-	if (BUFFER_SIZE < len)
-		return ;
-	len++;
-	i = 0;
-	while (buf[len + i])
-	{
-		end_buf[i] = buf[len + i];
-		i++;
-	}
-	end_buf[i+1] = 0;
-}
-
 char	*get_next_line(int fd)
 {
-	static char	*end_buf;
-	static int	i_end_last_buf;
-	char		buf[8888];
-	int			len;
-	char		*str;
-
-	read(fd, buf, BUFFER_SIZE);
-	printf("buf = %s -- \n", buf);
-	len = get_len_before_new_line(buf);
-	str = malloc(sizeof(char) * (len + get_len(end_buf) + 1));
-	fill_str(buf, str, end_buf, &i_end_last_buf);
-	end_buf = malloc( sizeof(char) * ( len_end_buf(buf, len) + 1));
-	save_end_buf(len, end_buf, buf);
-	return (end_buf);
+    int count;
+    char    buf[BUFFER_SIZE+1];
+    char    *str;
+    static char *end_buf;    
+    int     len_buf;
+    int     len_end_buf;
+    static int  end;
+    
+    count = read(fd, buf, BUFFER_SIZE);
+    buf[count] = '\0';
+    // printf("buff = %s| \n", buf);
+     if (count <= 0)
+     {
+        if (ft_strlen(end_buf) && end == 0)
+        {
+            end = 1;
+            return (end_buf);
+        }
+        return (NULL);
+     }
+    len_buf = count_before_new_line(buf);
+    len_end_buf = ft_strlen(end_buf);
+    str = malloc(sizeof(char) * (len_buf + len_end_buf + 1));
+    fill_str(str, buf, end_buf);
+    end_buf = malloc(sizeof(char) * (len_end_buf + 1));
+    fill_end_buff(end_buf, buf, len_buf);
+    printf("endbuf = |%s| \n", (buf + len_buf));
+    return (str);
 }
